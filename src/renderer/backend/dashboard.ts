@@ -31,8 +31,7 @@ const SELECTORS = {
 // --- DATA FETCHING FUNCTIONS ---
 
 /**
- * Fetches all students to calculate strand and status counts locally.
- * FIX: Normalizes strand and status strings to eliminate whitespace/case errors from DB.
+ * Fetches all students to calculate strand and status counts.
  */
 const fetchAndProcessAllStudents = async (): Promise<{
   strandCounts: Record<NewStudent['strand'], number>;
@@ -43,11 +42,8 @@ const fetchAndProcessAllStudents = async (): Promise<{
     .select('strand, enrollment_status');
 
   if (error) {
-    console.error('Error fetching all students:', error);
-    throw new Error('Failed to load all student data for counts.');
+    throw new Error('Failed to load student data.');
   }
-
-  console.log('Fetched students for counts:', students); // Debug log
 
   const strandCounts: Record<NewStudent['strand'], number> = {
     STEM: 0,
@@ -62,37 +58,17 @@ const fetchAndProcessAllStudents = async (): Promise<{
   };
 
   students.forEach((student: Partial<NewStudent>) => {
-    // 1. Normalize the Strand string: Trim whitespace and convert to uppercase.
-    const normalizedStrand = student.strand ? student.strand.trim().toUpperCase() : null;
+    const strand = student.strand as NewStudent['strand'];
+    const status = student.enrollment_status as NewStudent['enrollment_status'];
 
-    // 2. Normalize the Status string: Only trim whitespace (case should match 'Pending', 'Enrolled', 'Rejected').
-    const normalizedStatus = student.enrollment_status ? student.enrollment_status.trim() : null;
-
-    console.log(
-      'Processing student:',
-      student,
-      'normalizedStrand:',
-      normalizedStrand,
-      'normalizedStatus:',
-      normalizedStatus
-    ); // Debug log
-
-    // Count by Strand: Use the normalized value for checking/counting.
-    // The 'as NewStudent['strand']' asserts the normalized string is a valid key.
-    if (normalizedStrand && strandCounts[normalizedStrand as NewStudent['strand']] !== undefined) {
-      strandCounts[normalizedStrand as NewStudent['strand']]++;
+    if (strand && strandCounts[strand] !== undefined) {
+      strandCounts[strand]++;
     }
 
-    // Count by Status: Use the normalized value for checking/counting.
-    if (
-      normalizedStatus &&
-      statusCounts[normalizedStatus as NewStudent['enrollment_status']] !== undefined
-    ) {
-      statusCounts[normalizedStatus as NewStudent['enrollment_status']]++;
+    if (status && statusCounts[status] !== undefined) {
+      statusCounts[status]++;
     }
   });
-
-  console.log('Final counts:', { strandCounts, statusCounts }); // Debug log
 
   return { strandCounts, statusCounts };
 };
@@ -163,64 +139,33 @@ const generateTableRow = (student: NewStudent): string => {
 // --- MAIN EXECUTION LOGIC ---
 
 /**
- * Tests the Supabase connection.
- */
-const testSupabaseConnection = async (): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.from('NewStudents').select('count').limit(1);
-    if (error) {
-      console.error('Supabase connection test failed:', error);
-      return false;
-    }
-    console.log('Supabase connection successful. Sample data:', data);
-    return true;
-  } catch (err) {
-    console.error('Supabase connection test error:', err);
-    return false;
-  }
-};
-
-/**
  * Main function to run the dashboard logic after the DOM is fully loaded.
  */
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('Dashboard backend logic is running...');
-
-  // Test Supabase connection first
-  const isConnected = await testSupabaseConnection();
-  if (!isConnected) {
-    console.error('Failed to connect to Supabase. Please check your connection and credentials.');
-    updateElementText('.dashboard-error-message', 'Error: Could not connect to database.');
-    return;
-  }
-
   try {
-    // 1. Fetch and process all student data for counts (now with normalization fix)
+    // Fetch and process all student data for counts
     const { strandCounts, statusCounts } = await fetchAndProcessAllStudents();
 
-    // 2. Fetch the 5 most recent applications
+    // Fetch the 5 most recent applications
     const recentApplications = await fetchRecentApplications();
 
-    // --- DOM UPDATES ---
-
-    // A. Update Strand Cards
+    // Update Strand Cards
     updateElementText(SELECTORS.stemCount, strandCounts.STEM.toString());
     updateElementText(SELECTORS.abmCount, strandCounts.ABM.toString());
     updateElementText(SELECTORS.tvlCount, strandCounts['TVL-ICT'].toString());
     updateElementText(SELECTORS.humssCount, strandCounts.HUMSS.toString());
 
-    // B. Update Enrollment Status Counts (Pending/Enrolled/Rejected)
+    // Update Enrollment Status Counts
     updateElementText(SELECTORS.pendingCount, statusCounts.Pending.toString());
     updateElementText(SELECTORS.enrolledCount, statusCounts.Enrolled.toString());
     updateElementText(SELECTORS.rejectedCount, statusCounts.Rejected.toString());
 
-    // C. Populate Recent Enrollment Applications Table
+    // Populate Recent Enrollment Applications Table
     const tableBody = document.querySelector(SELECTORS.recentTableBody);
     if (tableBody) {
       tableBody.innerHTML = recentApplications.map(generateTableRow).join('');
     }
   } catch (err) {
-    console.error('Critical Error loading Dashboard data:', err);
-    updateElementText('.dashboard-error-message', 'Error: Could not load data.');
+    console.error('Error loading dashboard data:', err);
   }
 });

@@ -12,34 +12,7 @@ interface NewStudent {
   enrollment_status: 'Pending' | 'Enrolled' | 'Rejected';
 }
 
-/**
- * Tests the Supabase connection.
- */
-const testSupabaseConnection = async (): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.from('NewStudents').select('count').limit(1);
-    if (error) {
-      console.error('Supabase connection test failed:', error);
-      return false;
-    }
-    console.log('Supabase connection successful. Sample data:', data);
-    return true;
-  } catch (err) {
-    console.error('Supabase connection test error:', err);
-    return false;
-  }
-};
-
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('Students page backend logic is running...');
-
-  // Test Supabase connection first
-  const isConnected = await testSupabaseConnection();
-  if (!isConnected) {
-    console.error('Failed to connect to Supabase. Please check your connection and credentials.');
-    return;
-  }
-
   // --- Get All Elements ---
   const searchInput = document.getElementById('searchInput') as HTMLInputElement;
   const filterStrand = document.getElementById('filterStrand') as HTMLSelectElement;
