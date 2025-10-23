@@ -18,6 +18,9 @@ const createWindow = (): void => {
 
   const mainWindow = new BrowserWindow(windowOptions);
 
+  // Open DevTools for debugging
+  mainWindow.webContents.openDevTools();
+
   mainWindow.loadFile('src/renderer/frontend/index.html');
 };
 

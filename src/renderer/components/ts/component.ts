@@ -55,3 +55,22 @@ function initializeSidebarLogic(): void {
 // 3. MODIFIED: We now pass our new function as a callback when loading the sidebar.
 fetchAndInject('../components/html/sidebar.html', 'sidebar-container', initializeSidebarLogic);
 fetchAndInject('../components/html/footer.html', 'footer-container');
+
+// --- Load Backend Scripts ---
+// Since TypeScript files are compiled to JavaScript, we load the compiled JS files instead
+const loadBackendScript = (scriptPath: string): void => {
+  const script = document.createElement('script');
+  script.src = scriptPath.replace('.ts', '.js'); // Load the compiled JS file
+  script.defer = true;
+  document.head.appendChild(script);
+};
+
+// Load dashboard backend script if on dashboard page
+if (window.location.pathname.includes('dashboard.html')) {
+  loadBackendScript('../../../dist/renderer/backend/dashboard.js');
+}
+
+// Load students backend script if on students page
+if (window.location.pathname.includes('students.html')) {
+  loadBackendScript('../../../dist/renderer/backend/students.js');
+}

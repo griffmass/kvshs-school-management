@@ -1,22 +1,226 @@
-// This function contains all the logic that needs to run AFTER the sidebar is loaded.
-function initializeDashboardLogic() {
-  console.log('Sidebar loaded, initializing dashboard logic...');
+// src/renderer/backend/dashboard.ts
 
-  const logoutButton = document.getElementById('logout-btn');
-  if (logoutButton) {
-    logoutButton.addEventListener('click', () => {
-      // Redirect back to the login page
-      window.location.href = 'index.html';
-    });
-    console.log('Logout button event listener attached.');
-  } else {
-    console.error('Logout button not found after sidebar load.');
-  }
+import { supabase } from './supabaseClient';
 
-  // You can add other dashboard-specific logic here,
-  // like attaching event listeners to the main content area.
+// --- TYPE DEFINITION ---
+interface NewStudent {
+  lname: string;
+  fname: string;
+  strand: 'STEM' | 'ABM' | 'TVL-ICT' | 'HUMSS';
+  gradeLevel: number;
+  semester: string;
+  enrollment_status: 'Pending' | 'Enrolled' | 'Rejected';
 }
 
-// Instead of running on DOMContentLoaded, we now wait for our custom 'sidebarLoaded' event.
-// This ensures the script doesn't try to find 'logout-btn' before it exists in the DOM.
-document.addEventListener('sidebarLoaded', initializeDashboardLogic);
+// --- DOM ELEMENT SELECTORS (Matching the dashboard.html structure) ---
+const SELECTORS = {
+  // Strand Counts (from the Stat Cards)
+  stemCount: '.stat-stem-count',
+  abmCount: '.stat-abm-count',
+  tvlCount: '.stat-tvl-count',
+  humssCount: '.stat-humss-count',
+  // Enrollment Status Counts (from the Enrollment Count Panel)
+  pendingCount: '.stat-pending-count',
+  enrolledCount: '.stat-enrolled-count',
+  // Rejected count - assuming 'Approved' in your HTML means 'Enrolled' and 'Rejected' is the third status
+  rejectedCount: '.stat-rejected-count',
+  // Recent Applications Table Body
+  recentTableBody: '#recent-table-body',
+};
+
+// --- DATA FETCHING FUNCTIONS ---
+
+/**
+ * Fetches all students to calculate strand and status counts locally.
+ * FIX: Normalizes strand and status strings to eliminate whitespace/case errors from DB.
+ */
+const fetchAndProcessAllStudents = async (): Promise<{
+  strandCounts: Record<NewStudent['strand'], number>;
+  statusCounts: Record<NewStudent['enrollment_status'], number>;
+}> => {
+  const { data: students, error } = await supabase
+    .from('NewStudents')
+    .select('strand, enrollment_status');
+
+  if (error) {
+    console.error('Error fetching all students:', error);
+    throw new Error('Failed to load all student data for counts.');
+  }
+
+  console.log('Fetched students for counts:', students); // Debug log
+
+  const strandCounts: Record<NewStudent['strand'], number> = {
+    STEM: 0,
+    ABM: 0,
+    'TVL-ICT': 0,
+    HUMSS: 0,
+  };
+  const statusCounts: Record<NewStudent['enrollment_status'], number> = {
+    Pending: 0,
+    Enrolled: 0,
+    Rejected: 0,
+  };
+
+  students.forEach((student: Partial<NewStudent>) => {
+    // 1. Normalize the Strand string: Trim whitespace and convert to uppercase.
+    const normalizedStrand = student.strand ? student.strand.trim().toUpperCase() : null;
+
+    // 2. Normalize the Status string: Only trim whitespace (case should match 'Pending', 'Enrolled', 'Rejected').
+    const normalizedStatus = student.enrollment_status ? student.enrollment_status.trim() : null;
+
+    console.log(
+      'Processing student:',
+      student,
+      'normalizedStrand:',
+      normalizedStrand,
+      'normalizedStatus:',
+      normalizedStatus
+    ); // Debug log
+
+    // Count by Strand: Use the normalized value for checking/counting.
+    // The 'as NewStudent['strand']' asserts the normalized string is a valid key.
+    if (normalizedStrand && strandCounts[normalizedStrand as NewStudent['strand']] !== undefined) {
+      strandCounts[normalizedStrand as NewStudent['strand']]++;
+    }
+
+    // Count by Status: Use the normalized value for checking/counting.
+    if (
+      normalizedStatus &&
+      statusCounts[normalizedStatus as NewStudent['enrollment_status']] !== undefined
+    ) {
+      statusCounts[normalizedStatus as NewStudent['enrollment_status']]++;
+    }
+  });
+
+  console.log('Final counts:', { strandCounts, statusCounts }); // Debug log
+
+  return { strandCounts, statusCounts };
+};
+
+/**
+ * Fetches the 5 most recent student applications.
+ */
+const fetchRecentApplications = async (): Promise<NewStudent[]> => {
+  // Temporarily ordering by 'lname' (Last Name) since LRN/created_at are removed.
+  const orderByColumn = 'lname';
+
+  const { data, error } = await supabase
+    .from('NewStudents')
+    .select('gradeLevel, lname, fname, semester, strand, enrollment_status')
+    .order(orderByColumn, { ascending: false })
+    .limit(5);
+
+  if (error) {
+    console.error('Error fetching recent applications:', error);
+    throw new Error('Failed to load recent applications.');
+  }
+
+  // Cast the returned data to the defined type
+  return data as NewStudent[];
+};
+
+// --- DOM UPDATE FUNCTIONS ---
+
+/**
+ * Updates a single DOM element's text content.
+ */
+const updateElementText = (selector: string, text: string): void => {
+  const element = document.querySelector(selector);
+  if (element) {
+    element.textContent = text;
+  } else {
+    console.warn(`Element not found for selector: ${selector}`);
+  }
+};
+
+/**
+ * Generates an HTML table row for a student application.
+ */
+const generateTableRow = (student: NewStudent): string => {
+  // Determine the Tailwind CSS class based on the student's status
+  const statusClass =
+    student.enrollment_status === 'Pending'
+      ? 'bg-yellow-100 text-yellow-800'
+      : student.enrollment_status === 'Enrolled'
+        ? 'bg-green-100 text-green-800'
+        : 'bg-red-100 text-red-800';
+
+  return `
+        <tr class="bg-white border-b hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">${student.fname} ${student.lname}</td>
+            <td class="py-4 px-6">${student.strand}</td>
+            <td class="py-4 px-6 text-center">${student.gradeLevel}</td>
+            <td class="py-4 px-6 text-center">${student.semester}</td>
+            <td class="py-4 px-6">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusClass}">
+                    ${student.enrollment_status}
+                </span>
+            </td>
+        </tr>
+    `;
+};
+
+// --- MAIN EXECUTION LOGIC ---
+
+/**
+ * Tests the Supabase connection.
+ */
+const testSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.from('NewStudents').select('count').limit(1);
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+      return false;
+    }
+    console.log('Supabase connection successful. Sample data:', data);
+    return true;
+  } catch (err) {
+    console.error('Supabase connection test error:', err);
+    return false;
+  }
+};
+
+/**
+ * Main function to run the dashboard logic after the DOM is fully loaded.
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('Dashboard backend logic is running...');
+
+  // Test Supabase connection first
+  const isConnected = await testSupabaseConnection();
+  if (!isConnected) {
+    console.error('Failed to connect to Supabase. Please check your connection and credentials.');
+    updateElementText('.dashboard-error-message', 'Error: Could not connect to database.');
+    return;
+  }
+
+  try {
+    // 1. Fetch and process all student data for counts (now with normalization fix)
+    const { strandCounts, statusCounts } = await fetchAndProcessAllStudents();
+
+    // 2. Fetch the 5 most recent applications
+    const recentApplications = await fetchRecentApplications();
+
+    // --- DOM UPDATES ---
+
+    // A. Update Strand Cards
+    updateElementText(SELECTORS.stemCount, strandCounts.STEM.toString());
+    updateElementText(SELECTORS.abmCount, strandCounts.ABM.toString());
+    updateElementText(SELECTORS.tvlCount, strandCounts['TVL-ICT'].toString());
+    updateElementText(SELECTORS.humssCount, strandCounts.HUMSS.toString());
+
+    // B. Update Enrollment Status Counts (Pending/Enrolled/Rejected)
+    updateElementText(SELECTORS.pendingCount, statusCounts.Pending.toString());
+    updateElementText(SELECTORS.enrolledCount, statusCounts.Enrolled.toString());
+    updateElementText(SELECTORS.rejectedCount, statusCounts.Rejected.toString());
+
+    // C. Populate Recent Enrollment Applications Table
+    const tableBody = document.querySelector(SELECTORS.recentTableBody);
+    if (tableBody) {
+      tableBody.innerHTML = recentApplications.map(generateTableRow).join('');
+    }
+  } catch (err) {
+    console.error('Critical Error loading Dashboard data:', err);
+    updateElementText('.dashboard-error-message', 'Error: Could not load data.');
+  }
+});
