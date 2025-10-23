@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <title>KVSHS Admin Students</title>
+    <link rel="stylesheet" href="../../../dist/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        /* Ensure table content scrolls while header/sidebar are fixed */
+        .content-area {
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="absolute inset-0 -z-10">
+        <div class="w-full h-[250px] bg-blue-600"></div>
+        <div class="w-full h-full bg-gray-50"></div>
+    </div>
+
+    <div class="relative flex h-screen min-h-screen">
+        
+        <div id="sidebar-container"></div>
+        
+        <main class="flex-1 flex flex-col h-screen">
+            <div class="p-8">
+                <header class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold text-white">Students</h1>
+                    
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="searchInput"
+                                placeholder="Search"
+                                class="w-64 pl-10 pr-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            />
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                        </div>
+                        <button class="px-4 py-2 bg-blue-700 text-white rounded-lg shadow-sm hover:bg-blue-800 transition">Search</button>
+                    </div>
+                </header>
+            </div>
+
+            <div class="flex-grow p-8 -mt-16 content-area">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-700">LIST OF ALL STUDENTS:</h2>
+                        
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="text-gray-600 font-medium">SORT BY:</span>
+                            <select id="filterStrand" class="text-gray-700 bg-gray-100 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
+                                <option value="all">Strand</option>
+                                <option value="ABM">ABM</option>
+                                <option value="STEM">STEM</option>
+                                <option value="TVL-ICT">TVL-ICT</option>
+                                <option value="HUMSS">HUMSS</option>
+                            </select>
+                            <select id="filterYear" class="text-gray-700 bg-gray-100 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
+                                <option value="all">Year Level</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                            <select id="filterSemester" class="text-gray-700 bg-gray-100 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
+                                <option value="all">Semester</option>
+                                <option value="1st">1st</option>
+                                <option value="2nd">2nd</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-600">
+                            <thead class="border-b text-xs uppercase text-gray-400">
+                                <tr>
+                                    <th scope="col" class="py-3 px-4">Name</th>
+                                    <th scope="col" class="py-3 px-4">Strand</th>
+                                    <th scope="col" class="py-3 px-4">Year Level</th>
+                                    <th scope="col" class="py-3 px-4">Semester</th>
+                                    <th scope="col" class="py-3 px-4">Status</th>
+                                    <th scope="col" class="py-3 px-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <tr class="student-row hover:bg-gray-50" data-name="Aron James Betinol" data-strand="TVL-ICT" data-year="11" data-semester="1st" data-status="Pending">
+                                    <td class="py-4 px-4">Aron James Betinol</td>
+                                    <td class="py-4 px-4">TVL-ICT</td>
+                                    <td class="py-4 px-4">11</td>
+                                    <td class="py-4 px-4">1st</td>
+                                    <td class="py-4 px-4"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Pending</span></td>
+                                    <td class="py-4 px-4 text-right"><button class="view-btn px-4 py-1.5 bg-gray-700 text-white text-xs font-bold rounded-md hover:bg-gray-800">VIEW</button></td>
+                                </tr>
+                                <tr class="student-row bg-gray-50 hover:bg-gray-100" data-name="Jomel Marino" data-strand="STEM" data-year="11" data-semester="1st" data-status="Pending">
+                                    <td class="py-4 px-4">Jomel Marino</td>
+                                    <td class="py-4 px-4">STEM</td>
+                                    <td class="py-4 px-4">11</td>
+                                    <td class="py-4 px-4">1st</td>
+                                    <td class="py-4 px-4"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Pending</span></td>
+                                    <td class="py-4 px-4 text-right"><button class="view-btn px-4 py-1.5 bg-gray-700 text-white text-xs font-bold rounded-md hover:bg-gray-800">VIEW</button></td>
+                                </tr>
+                                <tr class="student-row hover:bg-gray-50" data-name="Jennelyn Serante" data-strand="ABM" data-year="11" data-semester="1st" data-status="Pending">
+                                    <td class="py-4 px-4">Jennelyn Serante</td>
+                                    <td class="py-4 px-4">ABM</td>
+                                    <td class="py-4 px-4">11</td>
+                                    <td class="py-4 px-4">1st</td>
+                                    <td class="py-4 px-4"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Pending</span></td>
+                                    <td class="py-4 px-4 text-right"><button class="view-btn px-4 py-1.5 bg-gray-700 text-white text-xs font-bold rounded-md hover:bg-gray-800">VIEW</button></td>
+                                </tr>
+                                <tr class="student-row bg-gray-50 hover:bg-gray-100" data-name="Maria Clara" data-strand="HUMSS" data-year="12" data-semester="2nd" data-status="Enrolled">
+                                    <td class="py-4 px-4">Maria Clara</td>
+                                    <td class="py-4 px-4">HUMSS</td>
+                                    <td class="py-4 px-4">12</td>
+                                    <td class="py-4 px-4">2nd</td>
+                                    <td class="py-4 px-4"><span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Enrolled</span></td>
+                                    <td class="py-4 px-4 text-right"><button class="view-btn px-4 py-1.5 bg-gray-700 text-white text-xs font-bold rounded-md hover:bg-gray-800">VIEW</button></td>
+                                </tr>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <footer id="footer-container" class="mt-auto p-8"></footer>
+        </main>
+    </div>
+
+    <div id="studentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Student Information</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <p><strong>Name:</strong> <span id="modalName"></span></p>
+                <p><strong>Strand:</strong> <span id="modalStrand"></span></p>
+                <p><strong>Year Level:</strong> <span id="modalYear"></span></p>
+                <p><strong>Semester:</strong> <span id="modalSemester"></span></p>
+                <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../component/ts/component.js" defer></script>
+    <script src="../ts/students.js" defer></script>
+</body>
+</html>

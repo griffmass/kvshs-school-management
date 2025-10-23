@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <title>KVSHS Admin Dashboard</title>
+    <link rel="stylesheet" href="../../../dist/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+         /* Applying the Poppins font family */
+        body {
+            font-family: 'Poppins', sans-serif;
+            /* Prevents scrolling for the main body */
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Main container for the two-part background -->
+    <div class="absolute inset-0 -z-10">
+        <div class="w-full h-[450px] bg-gradient-to-br from-blue-500 to-blue-50"></div>
+        <div class="w-full h-full bg-gray-100 -mt-[2px]"></div> <!-- Clean overlap -->
+    </div>
+
+    <div class="relative flex min-h-screen">
+        
+        <!-- Sidebar Component -->
+        <div id="sidebar-container"></div>
+            <!-- Main Content -->
+            <main class="flex-1 flex flex-col h-screen">
+                <div class="p-8 pb-0">
+                    <!-- Header -->
+                    <header class="flex justify-between items-center mb-8 mt-5">
+                        <h1 class="text-2xl font-bold text-white">ALS Students</h1>
+
+                    <!-- Search Bar -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="searchInput"
+                                placeholder="Search"
+                                class="w-64 pl-10 pr-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            />
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                        </div>
+                        <button class="px-4 py-2 bg-gray-700 text-white rounded-lg shadow-sm hover:bg-gray-800 transition">Search</button>
+                    </div>
+                    </header>
+
+                    <!-- Main Content Panels -->
+                    <div class="px-8 flex-grow content-scroll">
+                    <!-- Student List Card -->
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                             <div class="flex justify-between items-center border-b-2 border-gray-300 pb-2 mb-4">
+                                <h2 class="text-lg font-bold text-gray-600">LIST OF ALL STUDENTS:</h2>
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="text-gray-600 font-medium">SORT BY:</span>
+                            <select id="filterStrand" class="text-gray-700 bg-gray-100 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
+                                <option value="all">Strand</option>
+                                <option value="ABM">ABM</option>
+                                <option value="STEM">STEM</option>
+                                <option value="TVL-ICT">TVL-ICT</option>
+                                <option value="HUMSS">HUMSS</option>
+                            </select>
+                            <select id="filterYear" class="text-gray-700 bg-gray-100 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
+                                <option value="all">Year Level</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                            <select id="filterSemester" class="text-gray-700 bg-gray-100 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300 transition">
+                                <option value="all">Semester</option>
+                                <option value="1st">1st</option>
+                                <option value="2nd">2nd</option>
+                            </select>
+                        </div>
+                    </div>
+
+                            <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+                                <table class="w-full text-sm text-left text-gray-500">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="py-3 px-6">Name</th>
+                                            <th scope="col" class="py-3 px-6">Strand</th>
+                                            <th scope="col" class="py-3 px-6">Year Level</th>
+                                            <th scope="col" class="py-3 px-6">Semester</th>
+                                            <th scope="col" class="py-3 px-6">Status</th>
+                                            <th scope="col" class="py-3 px-6">Actions</th>                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="bg-white border-b">
+                                            <td class="py-4 px-6">Aron James Betinol</td>
+                                            <td class="py-4 px-6">TVL-ICT</td>
+                                            <td class="py-4 px-6 pl-12">11</td>
+                                            <td class="py-4 px-6 pl-12">1st</td>
+                                            <td class="py-4 px-6"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Pending</span></td>
+                                            <td class="py-4 px-4 text-right"><button class="view-btn px-4 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-md hover:bg-gray-200">VIEW</button></td>
+                                        </tr>
+                                        <tr class="bg-gray-50 border-b">
+                                            <td class="py-4 px-6">Jomel Marino</td>
+                                            <td class="py-4 px-6">STEM</td>
+                                            <td class="py-4 px-6 pl-12">11</td>
+                                            <td class="py-4 px-6 pl-12">1st</td>
+                                            <td class="py-4 px-6"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Pending</span></td>
+                                            <td class="py-4 px-4 text-right"><button class="view-btn px-4 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-md hover:bg-gray-200">VIEW</button></td>
+                                        </tr>
+                                        <tr class="bg-white">
+                                            <td class="py-4 px-6">Jennelyn Serante</td>
+                                            <td class="py-4 px-6">ABM</td>
+                                            <td class="py-4 px-6 pl-12">11</td>
+                                            <td class="py-4 px-6 pl-12">1st</td>
+                                            <td class="py-4 px-6"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Pending</span></td>
+                                            <td class="py-4 px-4 text-right"><button class="view-btn px-4 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-md hover:bg-gray-200">VIEW</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+
+                <!-- Footer Component -->
+                <div id="footer-container" class="p-8 pt-4"></div>
+            </main>
+        </div>
+    </div>
+    <script src="../../../dist/renderer/components/ts/component.js" defer></script>
+</body>
+</html>
